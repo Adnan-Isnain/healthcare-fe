@@ -1,4 +1,6 @@
 # Healthcare Management System - Frontend
+![healthcare-system](https://github.com/user-attachments/assets/ca7c2cb8-3d88-4b8a-a675-62f119f447b9)
+
 
 A modern, responsive healthcare management system built with React, TypeScript, and Ant Design.
 
