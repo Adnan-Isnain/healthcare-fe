@@ -74,18 +74,22 @@ const Menu: React.FC<MenuProps> = ({
     <AntMenu
       mode="inline"
       selectedKeys={[location.pathname]}
-      defaultOpenKeys={['treatments']}
-      style={{ height: '100%', borderRight: 0 }}
+      defaultOpenKeys={collapsed ? [] : ['treatments']}
+      style={{ 
+        height: '100%', 
+        borderRight: 0,
+      }}
       items={menuItems}
       onClick={onMobileMenuClose}
       inlineCollapsed={collapsed}
+      className="border-none"
     />
   );
 
   return (
     <>
       {/* Desktop Menu */}
-      <div className="hidden md:block">
+      <div className="hidden md:block h-full">
         {menuContent}
       </div>
 
@@ -97,10 +101,14 @@ const Menu: React.FC<MenuProps> = ({
         open={mobileOpen}
         width={250}
         className="md:hidden"
-        bodyStyle={{ padding: 0 }}
-        headerStyle={{ 
-          padding: '16px 24px',
-          borderBottom: '1px solid #f0f0f0',
+        styles={{
+          body: {
+            padding: 0
+          },
+          header: { 
+            padding: '16px 24px',
+            borderBottom: '1px solid #f0f0f0',
+          }
         }}
       >
         {menuContent}

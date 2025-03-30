@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Table, Button, Space, Modal, message, Tag } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
 import { Patient } from '../types/patient';
 import { usePatients, usePatientMutations } from '../services/api';
 import PatientForm from './PatientForm';
@@ -9,8 +8,7 @@ import PatientForm from './PatientForm';
 const PatientList: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingPatient, setEditingPatient] = useState<Patient | undefined>();
-  const navigate = useNavigate();
-  const { data: patients, isLoading } = usePatients();
+  const { patients, loading: isLoading } = usePatients();
   const { deletePatient } = usePatientMutations();
 
   const handleEdit = (patient: Patient) => {
@@ -111,17 +109,22 @@ const PatientList: React.FC = () => {
         </Button>
       </div>
 
-      <Table
-        columns={columns}
-        dataSource={patients}
-        rowKey="id"
-        loading={isLoading}
-        pagination={{
-          pageSize: 10,
-          showSizeChanger: true,
-          showTotal: (total) => `Total ${total} patients`,
-        }}
-      />
+      <div className="overflow-x-auto">
+        <Table
+          columns={columns}
+          dataSource={patients}
+          rowKey="id"
+          loading={isLoading}
+          pagination={{
+            pageSize: 10,
+            showSizeChanger: true,
+            showTotal: (total) => `Total ${total} patients`,
+          }}
+          scroll={{
+            x: 100,
+          }}
+        />
+      </div>
 
       <Modal
         title={editingPatient ? 'Edit Patient' : 'New Patient'}

@@ -3,17 +3,16 @@ import { Table, Button, Space, Modal, message, Tag } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { Treatment } from '../types/treatment';
-import { useTreatments, useTreatmentMutations, useTreatmentOptions, useMedications } from '../services/api';
+import { useTreatments, useTreatmentOptions, useMedications } from '../services/api';
 import TreatmentForm from './TreatmentForm';
 
 const TreatmentList: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingTreatment, setEditingTreatment] = useState<Treatment | undefined>();
   const navigate = useNavigate();
-  const { data: treatments, isLoading: isLoadingTreatments } = useTreatments();
-  const { data: treatmentOptions } = useTreatmentOptions();
-  const { data: medications } = useMedications();
-  const { deleteTreatment } = useTreatmentMutations();
+  const { treatments, loading: isLoadingTreatments } = useTreatments();
+  const { treatmentOptions } = useTreatmentOptions();
+  const { medications } = useMedications();
 
   // Create maps to easily look up names by slugs
   const treatmentOptionsMap = treatmentOptions?.reduce((acc, option) => {
@@ -138,17 +137,19 @@ const TreatmentList: React.FC = () => {
         </Button>
       </div>
 
-      <Table
-        columns={columns}
-        dataSource={treatments}
-        rowKey="id"
-        loading={isLoadingTreatments}
-        pagination={{
-          pageSize: 10,
-          showSizeChanger: true,
-          showTotal: (total) => `Total ${total} treatment records`,
-        }}
-      />
+      <div className="overflow-x-auto">
+        <Table
+          columns={columns}
+          dataSource={treatments}
+          rowKey="id"
+          loading={isLoadingTreatments}
+          pagination={{
+            pageSize: 10,
+            showSizeChanger: true,
+            showTotal: (total) => `Total ${total} treatment records`,
+          }}
+        />
+      </div>
 
       <Modal
         title={editingTreatment ? 'Edit Treatment Record' : 'New Treatment Record'}

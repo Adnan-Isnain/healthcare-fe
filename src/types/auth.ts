@@ -7,14 +7,6 @@ export interface AuthState {
     error: string | null;
   }
 
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-  permissions: string[];
-}
-
 export interface LoginCredentials {
   email: string;
   password: string;

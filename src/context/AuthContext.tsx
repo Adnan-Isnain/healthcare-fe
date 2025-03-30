@@ -1,9 +1,11 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { removeCookie, getCookie, setCookie } from '../utils/cookies';
-import { isTokenExpired, getTokenExpirationTime } from '../utils/jwt';
+import { isTokenExpired, getTokenExpirationTime, decodeToken } from '../utils/jwt';
 import { AuthState } from '../types/auth';
-import { User } from '../types/user';
+import { User, Role } from '../types/user';
 import { useLogin } from '../services/api';
+import { Spin } from 'antd';
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
@@ -13,8 +15,8 @@ interface AuthContextType extends AuthState {
 
 const initialState: AuthState = {
   user: null,
-  token: getCookie('auth_token'),
-  isLoading: false,
+  token: null,
+  isLoading: true,
   error: null,
 };
 
@@ -23,7 +25,8 @@ type AuthAction =
   | { type: 'LOGIN_SUCCESS'; payload: { user: User; token: string } }
   | { type: 'LOGIN_FAILURE'; payload: string }
   | { type: 'LOGOUT' }
-  | { type: 'SET_TOKEN'; payload: string | null };
+  | { type: 'SET_TOKEN'; payload: string | null }
+  | { type: 'SET_LOADING'; payload: boolean };
 
 const authReducer = (state: AuthState, action: AuthAction): AuthState => {
   switch (action.type) {
@@ -52,11 +55,18 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         ...state,
         user: null,
         token: null,
+        isLoading: false,
       };
     case 'SET_TOKEN':
       return {
         ...state,
         token: action.payload,
+        isLoading: false,
+      };
+    case 'SET_LOADING':
+      return {
+        ...state,
+        isLoading: action.payload,
       };
     default:
       return state;
@@ -68,31 +78,66 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
   const { login: loginApi } = useLogin();
+  const navigate = useNavigate();
 
-  // Check token validity on mount and token changes
+  // Check token validity on mount
   useEffect(() => {
-    const token = getCookie('auth_token');
-    if (token) {
-      if (isTokenExpired(token)) {
-        removeCookie('auth_token');
-        localStorage.removeItem('token');
-        dispatch({ type: 'LOGOUT' });
-      } else if (!state.token) {
-        dispatch({ type: 'SET_TOKEN', payload: token });
+    const checkAuth = async () => {
+      try {
+        const token = getCookie('auth_token');
+        
+        if (!token) {
+          dispatch({ type: 'SET_LOADING', payload: false });
+          navigate('/login', { replace: true });
+          return;
+        }
+
+        if (isTokenExpired(token)) {
+          // Token is expired, remove it and redirect to login
+          removeCookie('auth_token');
+          dispatch({ type: 'LOGOUT' });
+          navigate('/login', { replace: true });
+          return;
+        }
+
+        // Token is valid, decode and set user info
+        const decoded = decodeToken(token);
+        const userRole = Object.values(Role).includes(decoded.role as Role) ? decoded.role as Role : Role.STAFF;
+        
+        dispatch({
+          type: 'LOGIN_SUCCESS',
+          payload: {
+            user: {
+              id: decoded.id || 0,
+              name: decoded.name || 'User',
+              email: decoded.email || '',
+              role: userRole,
+              permissions: decoded.permissions || []
+            },
+            token
+          }
+        });
+        
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        navigate('/login', { replace: true });
+      } finally {
+        dispatch({ type: 'SET_LOADING', payload: false });
       }
-    }
-  }, [state.token]);
+    };
+
+    checkAuth();
+  }, [navigate]);
 
   const login = async (email: string, password: string) => {
     try {
       dispatch({ type: 'LOGIN_REQUEST' });
       const data = await loginApi(email, password);
       
-      // Store token in both cookie and localStorage
+      // Store token in cookie
       if (data.token) {
         const expirationTime = getTokenExpirationTime(data.token);
         setCookie('auth_token', data.token, expirationTime);
-        localStorage.setItem('token', data.token);
       }
       
       dispatch({
@@ -102,13 +147,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             id: data.id || 0,
             name: data.name || 'User',
             email: data.email || email,
-            role: data.role || 'USER',
+            role: data.role || Role.STAFF,
             permissions: data.permissions || []
           }, 
           token: data.token 
         },
       });
-      
+
+      navigate('/', { replace: true });
       return data;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Login failed';
@@ -122,21 +168,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     removeCookie('auth_token');
-    localStorage.removeItem('token');
     dispatch({ type: 'LOGOUT' });
+    navigate('/login', { replace: true });
   };
 
   const setToken = (token: string | null) => {
     if (token) {
       const expirationTime = getTokenExpirationTime(token);
       setCookie('auth_token', token, expirationTime);
-      localStorage.setItem('token', token);
     } else {
       removeCookie('auth_token');
-      localStorage.removeItem('token');
     }
     dispatch({ type: 'SET_TOKEN', payload: token });
   };
+
+  // Show loading spinner while checking authentication
+  if (state.isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   return (
     <AuthContext.Provider

@@ -50,7 +50,7 @@ const NewTreatment: React.FC = () => {
               placeholder="Select treatment type"
               loading={loading}
             >
-              {getTreatmentOptions?.map(option => (
+              {getTreatmentOptions && Array.isArray(getTreatmentOptions) && getTreatmentOptions.map((option: { id: string | number; name: string }) => (
                 <Select.Option key={option.id} value={option.id}>
                   {option.name}
                 </Select.Option>

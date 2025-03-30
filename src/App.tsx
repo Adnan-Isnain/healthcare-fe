@@ -1,5 +1,4 @@
-import { ConfigProvider } from 'antd';
-import { AuthProvider } from './context/AuthContext';
+import { ConfigProvider, App as AntApp } from 'antd';
 import AppRoutes from './routes';
 
 function App() {
@@ -11,9 +10,9 @@ function App() {
         },
       }}
     >
-      <AuthProvider>
+      <AntApp>
         <AppRoutes />
-      </AuthProvider>
+      </AntApp>
     </ConfigProvider>
   );
 }

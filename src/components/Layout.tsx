@@ -74,15 +74,7 @@ const AppLayout: React.FC = () => {
             collapsed={collapsed}
           />
         </Sider>
-
-        {/* Mobile Menu */}
-        <Menu
-          location={location}
-          onMobileMenuClose={() => setMobileOpen(false)}
-          mobileOpen={mobileOpen}
-          can={can}
-        />
-
+        
         <AntLayout 
           className="transition-all duration-300"
           style={{ 
@@ -100,7 +92,7 @@ const AppLayout: React.FC = () => {
               transition: 'padding-left 0.2s',
             }}
           >
-            <div className="w-full max-w-4xl mx-auto">
+            <div className="w-full max-w-4xl mx-auto bg-white rounded-lg shadow-sm p-6">
               <Outlet />
             </div>
           </Content>

@@ -121,17 +121,18 @@ const Patients: React.FC = () => {
       key: 'lastVisit',
     },
     {
-      title: 'Actions',
+      title: <div className="text-center">Actions</div>,
       key: 'actions',
-      render: (_, record) => (
-        <Space size="small">
-          <Button size="small" type="primary">
+      fixed: 'right',
+      render: () => (
+        <Space size="small" direction="vertical" className="w-full">
+          <Button size="small" type="primary" block>
             View
           </Button>
-          <Button size="small">
+          <Button size="small" block>
             Edit
           </Button>
-          <Button size="small" type="primary" danger>
+          <Button size="small" type="primary" danger block>
             Delete
           </Button>
         </Space>
@@ -212,6 +213,9 @@ const Patients: React.FC = () => {
           rowKey="id" 
           loading={loading}
           pagination={{ pageSize: 10 }}
+          scroll={{
+            x: 1000,
+          }}
         />
       </Card>
 

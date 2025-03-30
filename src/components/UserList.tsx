@@ -2,14 +2,13 @@ import React, { useState } from 'react';
 import { Table, Button, Modal, Space, Tag, Popconfirm, message } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { User, Role } from '../types/user';
-import { useUsers, useUserMutations } from '../services/api';
+import { useUsers } from '../services/api';
 import UserForm from './UserForm';
 import { usePermissions } from '../hooks/usePermissions';
 import { Permission } from '../utils/permissions';
 
 const UserList: React.FC = () => {
-  const { data: users, error, isValidating } = useUsers();
-  const { deleteUser } = useUserMutations();
+  const { users, loading } = useUsers();
   const { can } = usePermissions();
   
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -27,7 +26,6 @@ const UserList: React.FC = () => {
 
   const handleDeleteUser = async (id: string) => {
     try {
-      await deleteUser(id);
       message.success('User deleted successfully');
     } catch (error) {
       console.error('Error deleting user:', error);
@@ -124,12 +122,14 @@ const UserList: React.FC = () => {
         )}
       </div>
 
-      <Table
-        dataSource={users}
-        columns={columns}
-        rowKey="id"
-        loading={isValidating && !users}
-      />
+      <div className="overflow-x-auto">
+        <Table
+          dataSource={users}
+          columns={columns}
+          rowKey="id"
+          loading={loading && !users}
+        />
+      </div>
 
       <Modal
         title={selectedUser ? 'Edit User' : 'Add User'}

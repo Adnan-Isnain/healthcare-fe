@@ -2,7 +2,7 @@ import React from 'react';
 import { Typography, Avatar, Button } from 'antd';
 import { UserOutlined, LogoutOutlined, MedicineBoxOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
-import { User } from '../../types/auth';
+import { User } from '../../types/user';
 import MenuToggleButton from '../common/MenuToggleButton';
 import { MenuFoldOutlined, MenuUnfoldOutlined, MenuOutlined } from '@ant-design/icons';
 

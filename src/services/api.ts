@@ -1,5 +1,5 @@
 import useSWR from 'swr';
-import { getCookie, setCookie } from '../utils/cookies';
+import { getCookie, setCookie, removeCookie } from '../utils/cookies';
 import { TreatmentOption } from '../types/treatmentOption';
 import { Medication } from '../types/medication';
 import { getTokenExpirationTime } from '../utils/jwt';
@@ -21,12 +21,15 @@ interface ApiError extends Error {
 // Create axios instance with base URL
 const api = axios.create({
   baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  }
 });
 
 // Add request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token') || getCookie('auth_token');
+    const token = getCookie('auth_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -43,6 +46,12 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
+    if (error.response?.status === 401) {
+      // Remove invalid token
+      removeCookie('auth_token');
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
     const errorMessage = error.response?.data?.message || 'An unexpected error occurred';
     return Promise.reject(new Error(errorMessage));
   }
